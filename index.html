@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>기억의 탑 · 미래를 기억하는 자의 선택</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Dodum&family=Song+Myung&display=swap">
+<meta name="description" content="미래의 기억을 가진 주인공이 되어 선택하고, 퀴즈로 AI의 예측을 배우는 스토리 게임">
+<meta name="theme-color" content="#14110f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🗼%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#efe6d2;--panel:#fffaf0;--text:#2b2118;--muted:#6a6358;--line:#b89a63;--accent:#a33a2a;--bar:#d9ccae;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14110f;--panel:#221c17;--text:#efe6d2;--muted:#9a9184;--line:#6b5a3a;--accent:#e0705a;--bar:#3a3027}}
+:root[data-theme="dark"]{--bg:#14110f;--panel:#221c17;--text:#efe6d2;--muted:#9a9184;--line:#6b5a3a;--accent:#e0705a;--bar:#3a3027}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Gowun Dodum","Malgun Gothic","Apple SD Gothic Neo",sans-serif;line-height:1.7;font-size:16px}
+#app{max-width:520px;margin:0 auto;padding:10px}
+h1{font-family:"Song Myung","Do Hyeon",serif;font-size:26px;letter-spacing:1px;margin:2px 0 8px}h1 small{color:var(--muted);font-weight:normal}
+#hud{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;font-family:"Do Hyeon",sans-serif;font-size:15px;margin-bottom:8px;align-items:center}
+.bar{height:8px;background:var(--bar);border-radius:4px;overflow:hidden;margin-top:2px}
+.bar i{display:block;height:100%;width:50%;transition:width .3s}
+#fate i{background:#c9a227}#trust i{background:#4a8f7a}
+canvas{touch-action:none;display:block;width:100%;image-rendering:pixelated;border:3px solid var(--line);background:#000;box-sizing:border-box}
+#box{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:3px solid var(--line);border-top:0;padding:12px 14px;min-height:150px;box-sizing:border-box;box-shadow:inset 0 0 0 2px var(--panel),inset 0 0 0 4px var(--line);cursor:pointer}#main{flex:1;min-width:0}#pt{display:none;width:84px;height:84px;flex:none;image-rendering:pixelated;border:3px solid var(--line);border-radius:4px;background:#2a2118}#goal{font-family:"Do Hyeon",sans-serif;font-size:15px;margin:0 0 8px;padding:6px 12px;background:var(--panel);border:2px solid var(--line);border-radius:4px}
+#who{font-family:"Do Hyeon",sans-serif;color:#fff;background:var(--accent);display:inline-block;padding:1px 12px;border-radius:3px;font-size:16px;margin-bottom:4px}#who:empty{display:none}#start{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));text-align:center;background:radial-gradient(circle at 50% 30%,#2b2540,#0d0b14);color:#efe6d2}#start h2{font-family:"Song Myung",serif;font-size:46px;margin:0;letter-spacing:4px;color:#ffe08a}#start p{max-width:440px;margin:0;word-break:keep-all}#start small{color:#b3aa9b}#go{font-family:"Do Hyeon",sans-serif;font-size:22px;padding:12px 40px;background:#a33a2a;color:#fff;border:3px solid #c9a227;border-radius:6px;cursor:pointer}#log{margin-top:10px;padding:8px 12px;background:rgba(0,0,0,.78);color:#e8e2cf;font-size:14px;border-radius:4px;min-height:70px}#log div:last-child{color:#ffe08a}
+#txt{font-size:17px;line-height:1.75;word-break:keep-all}
+#box.mem #txt{font-family:"Song Myung",serif;font-size:20px;color:var(--muted)}
+#box.q #txt{color:var(--accent)}
+#txt ol,#txt ul{margin:4px 0 8px;padding-left:20px;font-size:13px}
+#btns button,#pad button{font:inherit;color:var(--text);background:var(--bg);border:2px solid var(--line);border-radius:4px;cursor:pointer}
+#btns button{display:block;width:100%;text-align:left;padding:12px;margin-top:8px;font-size:16px;line-height:1.5;word-break:keep-all}
+#btns button:hover,#pad button:active{border-color:var(--accent)}
+#pad{display:flex;gap:6px;justify-content:center;margin-top:10px}
+#pad button{padding:14px 16px;font-family:"Do Hyeon",sans-serif;font-size:16px;touch-action:manipulation}
+</style></head><body><div id="start"><h2>기억의 탑</h2><p>미래의 기억을 가진 주인공이 되어, 기억을 <b>따를지 거스를지</b> 선택하세요. 이야기 속 퀴즈를 풀며 ‘AI의 예측’도 배워요.</p><small>이동: 방향키·WASD (모바일은 화면 버튼)<br>대화: 스페이스 · 소리: 🔊 버튼으로 끌 수 있어요<br>♥ 3개를 모두 잃으면 기억이 흐려져 그 막을 다시 해야 해요!</small><button id="go">게임 시작</button><noscript>이 게임은 자바스크립트가 필요해요.</noscript></div><div id="app">
+<h1>기억의 탑 <small>미래를 기억하는 자의 선택</small></h1>
+<div id="hud"><div id="fate">확정도<div class="bar"><i></i></div></div><div id="trust">신뢰도<div class="bar"><i></i></div></div><div>기억 조각 <b id="frag">0/3</b></div></div>
+<div id="goal"></div><canvas id="cv" width="480" height="320"></canvas>
+<div id="box"><canvas id="pt" width="96" height="96"></canvas><div id="main"><div id="who"></div><div id="txt"></div><div id="btns"></div></div></div>
+<div id="pad"><button data-d="L">◀</button><button data-d="U">▲</button><button data-d="D">▼</button><button data-d="R">▶</button><button id="talk">대화</button><button id="dex">도감</button><button id="snd">🔊</button></div><div id="log"></div>
+</div>
+<script>
+const T=32,$=id=>document.getElementById(id),cv=$("cv"),cx=cv.getContext("2d"),cl=v=>Math.max(0,Math.min(100,v));
+const MAP=["###############","#.....TTT.....#","#.HH..TgT..HH.#","#.HH...=...HH.#","#....=====....#","#.##..L=L..##.#","#......=......#","#.WW..L=L..W..#","#.WW...=......#","###############"];
+const STORY={
+mem:["…기억이 흐릿하게 밀려온다.","해가 기울면 북문이 열리고, 경비대장 하란이 문 앞을 막아선 채 쓰러진다.","나는 그 장면을 이미 알고 있다. 끝까지 지켜보기만 했다는 것도."],
+npcs:[
+{id:"damsol",name:"소담",x:4,y:6,c:"#e07aa8",again:"“탑의 빛은 해 질 무렵에 가장 밝아져요.”",alt:"“들었어요. 하란 아저씨와 함께 북문을 지키기로 했다면서요? 기억에 없던 일이라니… 조금 무섭고, 조금 설레요.”",steps:[
+"“기억의 탑에서 가끔 빛이 새어 나와요. 그 빛을 본 사람은 ‘내일’을 안다고들 하죠.”",
+{frag:"예측",def:"지금까지의 정보로 앞일을 미리 짐작하는 것. 맞을 수도, 틀릴 수도 있어요."},
+"“근데 내일을 안다고 해서, 내일이 꼭 그대로 오는 건 아니겠죠?”"]},
+{id:"mujin",name:"무진",x:10,y:4,c:"#8a7fd0",again:"“기록은 기다려 주지. 천천히 생각해 보게.”",alt:"“기록에 없는 문장이 하나 생겼군. 자네가 쓴 첫 문장일세.”",steps:[
+"“기록은 지나간 일을 적지. 그런데 자네가 가진 기억은 아직 오지 않은 일을 적어 두었군.”",
+{frag:"데이터",def:"예측의 재료가 되는 정보. 빠진 부분이 있으면 예측이 한쪽으로 기울 수 있어요(편향)."},
+"“기억이 늘 전부를 보여 준다고 믿지는 말게.”"]},
+{id:"haran",name:"하란",x:9,y:3,c:"#c0392b",again:"“북문 쪽은 내가 살필 테니 걱정 마라.”",alt:"“네가 곁에 있다니 든든하군. …이상하게도 오늘 밤은 발걸음이 덜 무겁다.”",steps:[
+"“여행자인가? 해 질 무렵엔 북문 근처에 오지 마라. 오늘 밤은 내가 문을 열어야 해서 말이야.”",
+{choice:{label:"하란에게 건넨 말",q:"기억 속에서 하란은 북문에서 쓰러진다. 무슨 말을 할까?",opts:[
+{t:"“북문은 대장님이 맡으셔야죠.” (기억대로)",follow:true,fate:10,trust:0},
+{t:"“혼자 가지 마세요. 제가 곁에서 함께 지키겠습니다.”",follow:false,fate:-10,trust:10}],
+after:"기억은 하란이 쓰러진다고 했다. 그런데 나는 정말 그 기억을 믿어도 되는 걸까?"}}]}],
+gate:["해 질 무렵, 북문 앞. 기억 속의 나는 바로 이 자리에서 문을 열어 준다.",
+{choice:{label:"북문 앞의 선택",q:"기억은 ‘문을 연다’고 말한다. 어떻게 할까?",opts:[
+{t:"기억대로 북문을 열어 준다.",follow:true,fate:10,trust:0},
+{t:"문을 닫아걸고 기다려 본다.",follow:false,fate:-15,trust:-5}],
+after:"기억은 ‘이미 정해진 것’일까, 아니면 ‘가능한 하나의 미래’일까?"}},
+{frag:"책임",def:"내 선택의 결과를 받아들이고 답하는 것. 기억을 따랐다고 책임이 사라지지는 않아요."}]};
+const S={fate:50,trust:50,frag:0,log:[],talked:{},px:7,py:8,busy:true,gloss:[],gateDone:false,mem:true,flash:0,found:{},stage:1,decode:0,study:[],hp:3,mini:null};
+const H=(x,y,k)=>{const n=Math.sin(x*127.1+y*311.7+(k||0)*74.7)*43758.5453;return n-Math.floor(n)};
+const R=(g,c,X,Y,a,b,w,h)=>{g.fillStyle=c;g.fillRect(X+a*2,Y+b*2,w*2,h*2)};
+const disc=(g,c,X,Y,u,v,r)=>{for(let d=-r;d<=r;d++){const w=Math.round(Math.sqrt(r*r-d*d));R(g,c,X,Y,u-w,v+d,2*w+1,1)}};
+const at=(a,b)=>MAP[b]&&MAP[b][a];
+function ground(g,x,y){const X=x*T,Y=y*T,ch=MAP[y][x];
+if(ch=="="){R(g,"#cfb47c",X,Y,0,0,16,16);
+for(let i=0;i<8;i++)R(g,H(x,y,i+30)<.5?"#b99d66":"#e0c995",X,Y,H(x,y,i)*15|0,H(x,y,i+9)*15|0,1,1);
+if(H(x,y,5)<.3)R(g,"#9a9488",X,Y,3+(H(x,y,6)*9|0),3+(H(x,y,7)*9|0),2,1);
+[[0,-1,0,0,16,1],[0,1,0,15,16,1],[-1,0,0,0,1,16],[1,0,15,0,1,16]].forEach(([dx,dy,a,b,w,h])=>{if(at(x+dx,y+dy)!="="){R(g,"#a58a56",X,Y,a,b,w,h);for(let i=0;i<16;i++)if(H(x,y,i+70+dx*3+dy*5)<.4)R(g,"#5c9140",X,Y,dx?a:i,dy?b:i,1,1)}});return}
+if(ch=="W"){R(g,"#2b6cb0",X,Y,0,0,16,16);for(let i=0;i<5;i++)R(g,"#4a96d4",X,Y,H(x,y,i)*12|0,H(x,y,i+9)*15|0,3,1);
+[[0,-1,0,0,16,2],[0,1,0,14,16,2],[-1,0,0,0,2,16],[1,0,14,0,2,16]].forEach(([dx,dy,a,b,w,h])=>{const n=at(x+dx,y+dy);if(n!="W"&&n!="#"){R(g,"#e4d3a0",X,Y,a,b,w,h);R(g,"#c9b57e",X,Y,dx?(dx<0?2:13):0,dy?(dy<0?2:13):0,dx?1:16,dy?1:16)}});return}
+R(g,"#5c9140",X,Y,0,0,16,16);
+for(let i=0;i<9;i++){const k=H(x,y,i+20);R(g,k<.5?"#4f8236":"#6aa24a",X,Y,H(x,y,i)*15|0,H(x,y,i+9)*15|0,1+(k>.8),1)}
+if(H(x,y,50)<.4){const a=3+(H(x,y,51)*9|0),b=3+(H(x,y,52)*9|0);R(g,"#3e6f2c",X,Y,a,b,1,2);R(g,"#3e6f2c",X,Y,a+1,b+1,1,1);R(g,"#3e6f2c",X,Y,a-1,b+1,1,1)}
+if(H(x,y,60)<.12){const a=2+(H(x,y,61)*11|0),b=2+(H(x,y,62)*11|0);R(g,["#ffffff","#ffd23f","#ff8fb0"][H(x,y,63)*3|0],X,Y,a,b,1,1);R(g,"#3e6f2c",X,Y,a,b+1,1,1)}}
+function tree(g,x,y){const X=x*T,Y=y*T,k=H(x,y,3);g.fillStyle="rgba(0,0,0,.28)";g.fillRect(X+4,Y+26,24,5);
+R(g,"#4a2e17",X,Y,6,9,4,7);R(g,"#6b4423",X,Y,6,9,3,7);
+disc(g,"#1f4d24",X,Y,8,6,8);disc(g,"#2d6f33",X,Y,8,6,7);disc(g,k<.5?"#3f8f3c":"#4a9a3a",X,Y,7,5,5);disc(g,"#68b84e",X,Y,5,3,3);R(g,"#9ad870",X,Y,4,2,2,1);
+for(let i=0;i<4;i++)R(g,"#1f4d24",X,Y,(H(x,y,i+9)*10+3)|0,(H(x,y,i+20)*8+3)|0,1,1)}
+function house(g,x,y){const X=x*T,Y=y*T,L=at(x-1,y)!="H",top=at(x,y-1)!="H";
+if(top){R(g,"#222a36",X,Y,0,13,16,3);R(g,"#3f4b5e",X,Y,0,3,16,10);
+for(let k=0;k<4;k++){R(g,"#2f3a4b",X,Y,0,5+k*3,16,1);for(let j=0;j<4;j++)R(g,"#586882",X,Y,j*4+(k%2)*2,4+k*3,1,1)}
+R(g,"#252d3a",X,Y,0,1,16,2);R(g,"#6b7a94",X,Y,0,1,16,1);
+if(L){R(g,"#3f4b5e",X,Y,-1,2,1,10);R(g,"#222a36",X,Y,-2,1,2,2)}else{R(g,"#3f4b5e",X,Y,16,2,1,10);R(g,"#222a36",X,Y,16,1,2,2)}}
+else{R(g,"#ecdfc0",X,Y,0,0,16,13);R(g,"#8b8f96",X,Y,0,13,16,3);R(g,"#6e7178",X,Y,0,13,16,1);R(g,"rgba(0,0,0,.3)",X,Y,0,0,16,2);
+R(g,"#7a4a28",X,Y,0,0,2,13);R(g,"#7a4a28",X,Y,14,0,2,13);
+if(L){R(g,"#7a4a28",X,Y,3,3,10,10);R(g,"#f7f0d9",X,Y,4,4,8,8);[6,8,10].forEach(i=>R(g,"#7a4a28",X,Y,i,4,1,8));[6,9].forEach(j=>R(g,"#7a4a28",X,Y,4,j,8,1))}
+else{R(g,"#7a4a28",X,Y,4,3,8,7);R(g,"#f7f0d9",X,Y,5,4,6,5);R(g,"#7a4a28",X,Y,8,4,1,5);R(g,"#7a4a28",X,Y,5,6,6,1)}}}
+function tower(g,x,y,ch){const X=x*T,Y=y*T,a=x==6,b=x==8;
+if(y==1){R(g,"#ecdfc0",X,Y,0,9,16,7);R(g,"#a32a22",X,Y,0,8,16,2);
+for(let i=0;i<8;i++)R(g,["#2f6fb0","#3f9a5a","#d9ae2f","#2f6fb0"][i%4],X,Y,i*2,8,1,1);
+R(g,"#2e5d5a",X,Y,0,1,16,7);R(g,"#1f403e",X,Y,0,7,16,1);
+for(let k=0;k<3;k++){R(g,"#1f403e",X,Y,0,2+k*2,16,1);for(let j=0;j<4;j++)R(g,"#4a8a84",X,Y,j*4+(k%2)*2,3+k*2,1,1)}
+R(g,"#d9ae2f",X,Y,0,0,16,1);
+if(a){R(g,"#2e5d5a",X,Y,-1,2,1,5);R(g,"#d9ae2f",X,Y,-2,1,2,1)}if(b){R(g,"#2e5d5a",X,Y,16,2,1,5);R(g,"#d9ae2f",X,Y,16,1,2,1)}
+if(a||b)R(g,"#a32a22",X,Y,a?0:14,10,2,6);else{R(g,"#a32a22",X,Y,0,10,2,6);R(g,"#a32a22",X,Y,14,10,2,6);R(g,"#2b3a55",X,Y,5,10,6,6);R(g,"#9fd8ff",X,Y,6,11,4,5)}}
+else{R(g,"#8a929c",X,Y,0,0,16,16);
+for(let k=0;k<4;k++){R(g,"#69717c",X,Y,0,k*4+3,16,1);for(let j=0;j<2;j++)R(g,"#69717c",X,Y,(j*8+k*3)%16,k*4,1,3)}
+R(g,"#a6adb6",X,Y,0,0,16,1);
+if(ch=="g"){R(g,"#2b2f36",X,Y,3,3,10,13);R(g,"#2b2f36",X,Y,4,2,8,1);R(g,"#6b4423",X,Y,4,4,8,12);R(g,"#6b4423",X,Y,5,3,6,1);
+for(let i=0;i<4;i++)R(g,"#4a2e17",X,Y,5+i*2,4,1,12);R(g,"#e0b84a",X,Y,6,9,1,1);R(g,"#e0b84a",X,Y,9,9,1,1)}}}
+function lantern(g,x,y){const X=x*T,Y=y*T;g.fillStyle="rgba(0,0,0,.28)";g.fillRect(X+6,Y+27,20,4);
+R(g,"#6a7380",X,Y,4,12,8,3);R(g,"#8a929c",X,Y,6,8,4,4);R(g,"#6a7380",X,Y,4,4,8,4);R(g,"#ffd98a",X,Y,6,5,4,2);R(g,"#7d8794",X,Y,3,2,10,2);R(g,"#a6adb6",X,Y,5,1,6,1);R(g,"#7d8794",X,Y,7,0,2,1)}
+const BG=document.createElement("canvas");BG.width=480;BG.height=320;
+(function(){const g=BG.getContext("2d");g.imageSmoothingEnabled=false;
+for(let y=0;y<10;y++)for(let x=0;x<15;x++)ground(g,x,y);
+for(let y=0;y<10;y++)for(let x=0;x<15;x++){const c=MAP[y][x];if(c=="#")tree(g,x,y);else if(c=="H")house(g,x,y);else if(c=="T"||c=="g")tower(g,x,y,c);else if(c=="L")lantern(g,x,y)}
+const v=g.createRadialGradient(240,160,110,240,160,310);v.addColorStop(0,"rgba(255,170,80,.07)");v.addColorStop(1,"rgba(20,10,40,.5)");g.fillStyle=v;g.fillRect(0,0,480,320)})();
+const B=(n,c)=>"o"+c.repeat(n)+"o",C=s=>{const n=12-s.length;return ".".repeat(n>>1)+s+".".repeat(n-(n>>1))};
+const SP=[C("oooooo"),C("ohhhhhho"),C("ohhhhhho"),C("ohssssho"),C("osesseso"),C("osssssso"),C("osso"),C(B(8,"c")),B(10,"c"),"os"+"c".repeat(8)+"so",B(10,"b"),C(B(8,"d")),C(B(8,"d")),"..ollo..ollo","..oooo..oooo"];
+const PAL={me:{h:"#2a1f1a",c:"#3a6ea5",d:"#2b5280",b:"#e0b84a",l:"#4a3a2a"},haran:{h:"#8a93a0",c:"#a33227",d:"#6e211b",b:"#d9ae2f",l:"#3a3a3a"},damsol:{h:"#5a3a2a",c:"#e07aa8",d:"#b4587f",b:"#fff3c4",l:"#6b4a3a"},mujin:{h:"#ececec",c:"#6c5fb5",d:"#4a3f86",b:"#d9ae2f",l:"#4a3f3a"}};
+function spr(g,X,Y,p){SP.forEach((r,j)=>{for(let i=0;i<12;i++){const ch=r[i];if(ch!=".")R(g,(ch=="e"||ch=="o")?"#1a1410":(p[ch]||"#f2c9a0"),X,Y,i+2,j+1,1,1)}})}
+function acc(g,id,X,Y){if(id=="me")R(g,"#c0392b",X,Y,4,3,8,1);
+if(id=="haran")R(g,"#e04a3a",X,Y,7,0,2,2);
+if(id=="damsol"){R(g,"#5a3a2a",X,Y,2,5,1,4);R(g,"#5a3a2a",X,Y,13,5,1,4);R(g,"#fff3c4",X,Y,2,5,1,1);R(g,"#fff3c4",X,Y,13,5,1,1)}
+if(id=="mujin"){R(g,"#ececec",X,Y,6,7,4,2);R(g,"#7a4a28",X,Y,14,5,1,10)}}
+function draw(){const t=Date.now(),g=cx;g.imageSmoothingEnabled=false;if(S.mini)return drawMini(g,t);g.drawImage(BG,0,0);
+for(let y=0;y<10;y++)for(let x=0;x<15;x++)if(MAP[y][x]=="W"){const o=Math.floor(t/400+x*2+y)%3;R(g,"#8fc4ec",x*T,y*T,2+o*3,4,3,1);R(g,"#8fc4ec",x*T,y*T,9-o*2,10,3,1)}
+const p=.5+.5*Math.sin(t/500),gr=g.createRadialGradient(240,28,2,240,28,26+p*6);gr.addColorStop(0,"rgba(200,235,255,.95)");gr.addColorStop(1,"rgba(120,180,255,0)");g.fillStyle=gr;g.fillRect(190,0,100,80);g.fillStyle="#eaf6ff";g.fillRect(237,25,6,6);
+[218,260].forEach(tx=>{const ty=78,h=5+Math.floor(t/90)%3,tg=g.createRadialGradient(tx+1,ty+2,1,tx+1,ty+2,24);tg.addColorStop(0,"rgba(255,170,60,.4)");tg.addColorStop(1,"rgba(255,170,60,0)");g.fillStyle=tg;g.fillRect(tx-24,ty-22,50,50);
+g.fillStyle="#5a3a22";g.fillRect(tx,ty+6,3,8);g.fillStyle="#ff8a1f";g.fillRect(tx-1,ty+6-h,5,h);g.fillStyle="#ffd23f";g.fillRect(tx,ty+8-h,3,h-2)});
+const E=STORY.npcs.map(n=>({id:n.id,x:n.x,y:n.y,name:n.name,mark:!S.talked[n.id]})).concat([{id:"me",x:P.rx,y:P.ry}]).sort((a,b)=>a.y-b.y);
+E.forEach(e=>{const X=e.x*T,Y=e.y*T,o=e.id=="me"?(Math.abs(S.px-P.rx)+Math.abs(S.py-P.ry)>.05?-((t/90|0)%2)*2:0):-(Math.floor(t/600+e.x)%2)*2;
+g.fillStyle="rgba(0,0,0,.3)";g.fillRect(X+8,Y+28,16,3);g.fillRect(X+6,Y+29,20,2);
+spr(g,X,Y+o,PAL[e.id]);acc(g,e.id,X,Y+o);if(e.id=="me"){const d=S.dir||[0,-1];g.fillStyle="rgba(255,224,138,.95)";g.fillRect(X+14+d[0]*17,Y+16+d[1]*17,4,4)}
+if(e.name){g.font="bold 11px sans-serif";g.textAlign="center";g.lineWidth=3;g.strokeStyle="#000";g.strokeText(e.name,X+16,Y-1);g.fillStyle="#fff";g.fillText(e.name,X+16,Y-1)}
+if(e.mark){const m=Math.floor(t/250)%2*2;g.fillStyle="#000";g.fillRect(X+13,Y-24+m,6,12);g.fillStyle="#ffd23f";g.fillRect(X+14,Y-23+m,4,7);g.fillRect(X+14,Y-14+m,4,2)}});fx(g,t)}
+const SPK=[[1,4,"편향","한쪽으로 치우친 정보나 생각. 데이터가 한쪽만 담으면 예측도 기울어요."],[13,6,"알고리즘","문제를 풀기 위해 정해 둔 순서와 규칙. AI는 알고리즘으로 예측을 계산해요."]],P={rx:7,ry:8},MO=Array.from({length:26},(_,i)=>({x:H(i,1)*480,y:H(i,2)*320,s:.2+H(i,3)*.5,p:H(i,4)*6}));
+function fx(g,t){const d=Object.keys(S.talked).length*.07+(S.gateDone?.12:0)+(S.stage>1?S.stage*.03:0);if(d>0){g.fillStyle="rgba(30,15,60,"+d+")";g.fillRect(0,0,480,320)}
+SPK.forEach(q=>{if(S.found[q[2]])return;const a=.5+.5*Math.sin(t/250+q[0]),X=q[0]*T+16,Y=q[1]*T+16;g.fillStyle="rgba(190,230,255,"+(.4+a*.6)+")";g.fillRect(X-1,Y-6-a*2,2,12);g.fillRect(X-6,Y-1,12,2);g.fillStyle="#fff";g.fillRect(X-1,Y-1,2,2)});
+[[6,5],[8,5],[6,7],[8,7]].forEach(([x,y],i)=>{const f=.8+.2*Math.sin(t/200+i*2),c=g.createRadialGradient(x*T+16,y*T+14,1,x*T+16,y*T+14,30*f);c.addColorStop(0,"rgba(255,200,110,.45)");c.addColorStop(1,"rgba(255,200,110,0)");g.fillStyle=c;g.fillRect(x*T-16,y*T-18,64,64)});
+MO.forEach(m=>{m.y-=m.s*.3;m.x+=Math.sin(t/900+m.p)*.3;if(m.y<-4){m.y=324;m.x=H(m.p,t|0)*480}g.fillStyle="rgba(255,240,170,"+(.25+(.5+.5*Math.sin(t/300+m.p))*.6)+")";g.fillRect(m.x|0,m.y|0,2,2)});
+if(S.mem){g.fillStyle="rgba(10,12,30,.62)";g.fillRect(0,0,480,320);g.fillStyle="rgba(180,200,255,.06)";for(let y=(t/40|0)%4;y<320;y+=4)g.fillRect(0,y,480,1)}
+if(S.flash>0){g.fillStyle="rgba(190,230,255,"+S.flash+")";g.fillRect(0,0,480,320);S.flash-=.04}
+if(S.toast&&t<S.toast.u){g.font="16px 'Do Hyeon',sans-serif";g.textAlign="center";const w=g.measureText(S.toast.s).width+28;g.fillStyle="rgba(15,12,10,.88)";g.fillRect(240-w/2,14,w,30);g.strokeStyle="#c9a227";g.lineWidth=2;g.strokeRect(240-w/2,14,w,30);g.fillStyle="#ffe08a";g.fillText(S.toast.s,240,35)}guide(g,t)}
+function guide(g,t){const tg=S.stage>1?S.target:(Object.keys(S.talked).length>=3&&!S.gateDone?"gate":null);
+if(tg&&!S.busy){const q=tg=="gate"?{x:7,y:2}:STORY.npcs.find(n=>n.id==tg),b=Math.sin(t/180)*4,X=q.x*T+16,Y=q.y*T+(tg=="gate"?4:-6);
+if(tg=="gate"){g.strokeStyle="rgba(255,224,138,"+(.5+.4*Math.sin(t/200))+")";g.lineWidth=3;g.strokeRect(7*T+3,3*T+3,T-6,T-6);g.font="14px 'Do Hyeon',sans-serif";g.textAlign="center";g.strokeStyle="#000";g.strokeText("▲ 문을 보고 대화",7*T+16,4*T+14);g.fillStyle="#ffe08a";g.fillText("▲ 문을 보고 대화",7*T+16,4*T+14)}
+g.beginPath();g.moveTo(X-9,Y-26+b);g.lineTo(X+9,Y-26+b);g.lineTo(X,Y-10+b);g.closePath();g.fillStyle="#ffd23f";g.fill();g.lineWidth=2;g.strokeStyle="#000";g.stroke()}
+if(S.title&&t<S.title.u){const a=Math.min(1,(S.title.u-t)/700);g.font="40px 'Song Myung',serif";g.textAlign="center";g.fillStyle="rgba(0,0,0,"+a*.55+")";g.fillRect(0,120,480,64);g.fillStyle="rgba(255,224,138,"+a+")";g.fillText(S.title.s,240,164)}}
+(function L(){P.rx+=(S.px-P.rx)*.3;P.ry+=(S.py-P.ry)*.3;if(Math.abs(S.px-P.rx)<.02)P.rx=S.px;if(Math.abs(S.py-P.ry)<.02)P.ry=S.py;draw();requestAnimationFrame(L)})();
+function hud(){$("fate").querySelector("i").style.width=S.fate+"%";$("trust").querySelector("i").style.width=S.trust+"%";$("frag").textContent=S.frag+"/5 · "+"♥".repeat(S.hp)+"♡".repeat(Math.max(0,3-S.hp));const n=Object.keys(S.talked).length;$("goal").innerHTML="🎯 <b>목표</b> "+(S.gateDone?"1막 완료!":n<3?"마을 사람 3명과 대화하기 ("+n+"/3)":"탑 아래 금빛 문 앞(노란 칸)에서 위쪽을 보고 ‘대화’ 누르기")+" · 숨은 조각 "+Object.keys(S.found).length+"/2";if(S.stage>1)$("goal").innerHTML="📖 <b>"+S.stage+"막</b> · "+(S.target?"👉 <b>"+({mujin:"무진에게",damsol:"소담에게",haran:"하란에게",gate:"탑의 문으로"})[S.target]+"</b> 가서 대화 · ":"")+"기억 해독 "+S.decode+"/4"}
+let SK=null,TW=0,AC=null,MUTE=false;const NAMEID={"하란":"haran","소담":"damsol","무진":"mujin"};
+function tone(f,d,ty,v){if(MUTE)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state=="suspended")AC.resume();const o=AC.createOscillator(),a=AC.createGain();o.type=ty||"square";o.frequency.value=f;a.gain.value=v||.03;o.connect(a);a.connect(AC.destination);o.start();a.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);o.stop(AC.currentTime+d)}catch(e){}}
+const blip=w=>tone(w=="하란"?150:w=="소담"?420:w=="무진"?200:300,.05,"square",.015),jingle=()=>[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,.18,"triangle",.05),i*90));
+function show(who,html,btns,cls){clearInterval(TW);SK=null;$("who").textContent=who;$("box").className=cls||"";
+const id=NAMEID[who],pt=$("pt"),pg=pt.getContext("2d");pt.style.display=id?"block":"none";
+if(id){pg.imageSmoothingEnabled=false;pg.fillStyle="#2a2118";pg.fillRect(0,0,96,96);pg.save();pg.scale(3,3);spr(pg,0,0,PAL[id]);acc(pg,id,0,0);pg.restore()}
+const t=$("txt"),b=$("btns");b.innerHTML="";
+const put=()=>{(btns||[]).forEach((x,i)=>{const e=document.createElement("button");e.textContent=(btns.length>1?(i+1)+". ":"")+x[0];e.onclick=x[1];b.appendChild(e)})};
+if(html.includes("<")||!who){t.innerHTML=html;put();return}
+let i=0;t.textContent="";SK=()=>{clearInterval(TW);t.textContent=html;put();SK=null};
+TW=setInterval(()=>{i++;t.textContent=html.slice(0,i);if(i%2==0)blip(who);if(i>=html.length)SK()},28)}
+function hint(){show("",(S.stage>1?"이야기를 이어 가려면 노란 화살표가 가리키는 곳으로 가서 말을 걸어 보자.":Object.keys(S.talked).length>=3?"모두와 이야기했다. 이제 탑 아래 금빛 문으로 가 보자. 노란 칸에서 위쪽(▲)을 바라보고 ‘대화’!":"마을을 돌아다니며 사람들에게 말을 걸어 보자.")+"<br><small>이동: 방향키·WASD 또는 아래 버튼 / 대화: 상대를 바라보고(노란 점 방향) 스페이스</small>",[])}
+function run(steps,done,cls,name){let i=0;(function next(){if(i>=steps.length){done&&done();return}
+const s=steps[i++];
+if(S.stage>1)S.mem=typeof s=="object"&&s.mem!==undefined;
+if(typeof s==="string")show(name||"",s,[["계속",next]],cls);
+else if(s.mem!==undefined)show("…",s.mem,[["계속",next]],"mem");
+else if(s.say)show(s.w,s.say,[["계속",next]]);
+else if(s.mini){startMini(s.mini,ok=>{if(ok){note("✦ 폭풍을 돌파했다!");jingle();next()}else if(!hurt("기억의 폭풍에 휩쓸렸다")){i--;next()}})}
+else if(s.quiz){const z=s.quiz;show("기억 해독 · "+z.k,z.q,z.o.map((t,i)=>[t,()=>{const ok=i==z.a;S.study.push({k:z.k,ok:ok,why:z.why});if(ok){S.decode++;jingle();note("✔ 해독 성공: "+z.k)}else{tone(120,.3,"sawtooth",.05);note("✘ 해독 실패: "+z.k)}hud();show(ok?"정답!":"아쉬워요","<b>정답: "+z.o[z.a]+"</b><br>"+z.why,[["계속",ok?next:()=>{if(!hurt("기억 해독에 실패했다"))next()}]],ok?"":"q")}]))}
+else if(s.choice){const c=s.choice;show("선택",c.q,c.opts.map(o=>[o.t+(o.follow?"":" (성공 확률 "+pc()+"%)"),()=>{const p=pc();
+if(!o.follow&&Math.random()*100>=p){S.trust=cl(S.trust-15);S.log.push({q:c.label,t:o.t,follow:false,fail:true});hud();if(hurt("거스르려 했지만 실패했다"))return;show("실패…","거스르려 했지만 <b>실패</b>했다. 믿음이 흔들린다.<br>(성공 확률은 "+p+"%였다. 예측이 틀릴 수 있듯, 도전도 실패할 수 있다.)",[["계속",next]],"q");return}
+S.fate=cl(S.fate+o.fate);S.trust=cl(S.trust+o.trust);S.log.push({q:c.label,t:o.t,follow:o.follow});hud();if(S.trust<=0){gameOver("동료들의 신뢰를 모두 잃었다");return}tone(o.follow?330:660,.15,"triangle",.06);note(o.follow?"기억대로… 확정도 상승":"미래가 흔들린다…");show("…",c.after,[["계속",next]],"q")}]))}
+else if(s.frag){S.frag++;S.gloss.push(s);hud();jingle();S.flash=.7;note("✦ 기억 조각 획득: "+s.frag);show("기억 조각","기억 조각을 얻었다: <b>"+s.frag+"</b><br>"+s.def,[["계속",next]])}})()}
+function talk(n){S.busy=true;logm(n.name+"에게 말을 걸었다.");
+if(S.stage>1&&S.target==n.id){S.target=null;run(S.rest,()=>{S.stage<5?stg(S.stage+1):(S.mem=false,end())});return}if(S.talked[n.id]){run([(S.log.length&&!S.log[0].follow&&!S.log[0].fail&&n.alt)||n.again],()=>{S.busy=false;hint()},"",n.name);return}
+run(n.steps,()=>{S.talked[n.id]=1;S.busy=false;hint();hud()},"",n.name)}
+function gate(){S.busy=true;if(S.stage>1&&S.target=="gate"){S.target=null;run(S.rest,()=>{S.mem=false;end()});return}if(Object.keys(S.talked).length<3){run(["문은 굳게 닫혀 있다. 마을 사람들의 이야기를 더 들어 봐야 할 것 같다."],()=>{S.busy=false;hint()});return}
+if(S.gateDone){run(["문은 이미 지나온 선택의 흔적만 남기고 있다."],()=>{S.busy=false;hint()});return}
+run(STORY.gate,()=>{S.gateDone=true;const all=S.log.every(l=>l.follow);
+show("1막 1장 끝",all?"해가 졌다. 모든 일이 기억대로 흘러갔다. 안전했지만, 내가 고른 것은 하나도 없다는 기분이 든다.":"해가 졌다. 기억에 없던 장면이 시작된다. 불안하지만, ‘내 선택’이라는 말이 처음으로 무겁게 느껴진다.",[["다음 이야기로 →",()=>stg(2)]])},"","북문")}
+function dex(){if(S.busy)return;S.busy=true;show("용어 도감",S.gloss.length?"<ul>"+S.gloss.map(g=>"<li><b>"+g.frag+"</b> — "+g.def+"</li>").join("")+"</ul>":"아직 얻은 기억 조각이 없다.",[["닫기",()=>{S.busy=false;hint()}]])}
+const MM=t=>({mem:t}),SY=(w,t)=>({say:t,w}),QZ=(k,q,o,a,why)=>({quiz:{k,q,o,a,why}}),CH=(label,q,opts,after)=>({choice:{label,q,opts,after}}),OP=(t,f,fa,tr)=>({t,follow:f,fate:fa,trust:tr});
+function SC(n){const res=S.log[0]&&!S.log[0].follow&&!S.log[0].fail,all=S.log.every(l=>l.follow);
+if(n==2)return[MM("기억이 다시 밀려온다. 탑의 지하 기록실이다."),MM(res?"기억 속 하란은 쓰러졌다. 그런데 현실의 하란은 서 있다. 처음으로 기억이 틀렸다.":"기억 속 하란은 쓰러졌고, 현실에서도 그대로였다. 알고 있던 일이라 더 아프다."),
+SY("무진","“탑을 열어 보았네. 탑은 자네의 지난 선택 기록을 모아 ‘다음 선택’을 짐작하고 있었어.”"),SY("무진","“그런데 기록을 보니 백 번 중 아흔아홉 번이 ‘따르기’였네.”"),
+{mini:{msg:"탑의 기록이 쏟아진다! 편향 안개를 피하며 진짜 데이터(✦)를 모아라.",goal:8,sec:20,max:3,lv:1}},QZ("편향","탑이 이 기록만으로 학습했다면, 예측의 가장 큰 문제는 무엇일까?",["기록이 많아서 계산이 느려진다","탑이 일부러 거짓말을 한다","거스른 기록이 거의 없어 예측이 ‘따르기’ 쪽으로 치우친다"],2,"데이터가 한쪽으로 치우치면 예측도 치우쳐요. 이것을 ‘편향’이라고 해요."),
+CH("무진에게 한 말","무진이 묻는다. “탑의 예측을 계속 믿을 텐가?”",[OP("예측을 믿고 계속 따른다. (기억대로)",true,10,-5),OP("편향일 수 있으니 다른 단서를 더 찾아본다.",false,-10,10)],"예측을 믿기 전에, 어떤 데이터로 만들어졌는지 묻는 습관이 필요하다.")];
+if(n==3)return[MM("새벽, 약초밭. 소담이 하늘을 올려다보며 중얼거린다."),SY("소담","“탑이 말한 확정도는 일기예보 같은 거예요. 비 올 확률 70%라고 해도, 안 올 수도 있잖아요.”"),
+{mini:{msg:"확률의 비가 내린다! 안개를 피해 가능성(✦)을 모아라.",goal:10,sec:22,max:3,lv:2}},QZ("확률","확정도 70%라는 말의 뜻으로 가장 알맞은 것은?",["반드시 그렇게 된다","같은 상황이 열 번 있으면 일곱 번쯤 그렇게 될 가능성이 있다","나머지 30%는 거짓이다"],1,"예측은 ‘가능성’이에요. 확률이 높아도 틀릴 수 있어요."),
+CH("소담에게 한 말","소담이 묻는다. “마을 사람들에게 탑의 예측을 어떻게 전할까요?”",[OP("“확정입니다. 모두 대피하세요.” (기억대로)",true,10,-5),OP("“가능성이 높습니다. 대비하되 지켜봅시다.”",false,-10,10)],"‘확정’이라는 말과 ‘가능성이 높다’는 말은 사람들의 행동을 다르게 만든다.")];
+if(n==4)return[MM("북문 앞. 기억 속 하란이 외친다. ‘탑이 내가 쓰러진다고 했으니, 아무도 문 근처에 오지 마라!’"),SY("하란","“예측을 듣고 나니 싸울 마음이 사라지더군. 쓰러진다는 말이 나를 쓰러뜨리는 것 같았지.”"),
+{mini:{msg:"되먹임의 소용돌이! 안개를 피해 올바른 판단(✦)을 모아라.",goal:12,sec:24,max:3,lv:3}},QZ("자기실현적 예언","예측을 믿고 행동한 결과, 그 예측이 실제로 맞게 되는 현상을 무엇이라 할까?",["자기실현적 예언","우연의 일치","데이터 삭제"],0,"예측이 행동을 바꾸고, 바뀐 행동이 예측을 현실로 만들 수 있어요. AI 추천을 믿고 따를 때도 일어날 수 있어요."),
+CH("하란에게 한 말","하란이 묻는다. “탑의 예측을 모두에게 알릴까, 숨길까?”",[OP("기억대로 모두에게 알린다.",true,10,0),OP("숨기고, 각자 스스로 판단하게 둔다.",false,-10,5)],"알리는 것도 숨기는 것도 결과를 바꾼다. 정답보다 ‘책임’이 중요해지는 순간이다.")];
+return[MM("탑의 맨 위. 모든 기억이 한 장면으로 모인다."),MM("나는 탑의 불을 끄고 있다. 모두가 나를 본다. 그리고 기억은… 거기서 끊겨 있다."),
+SY("탑","“나는 네가 남긴 선택의 기록이다. 네가 본 ‘미래의 기억’은 내가 계산한 가장 그럴듯한 다음 장면이었다.”"),
+SY("탑",all?"“너는 이 마을에 처음 온 것이 아니다. 지난 기록 속의 너도 매번 따랐다. 이번에도 그랬다.”":"“너는 이 마을에 처음 온 것이 아니다. 지난 기록 속의 너는 매번 따랐다. 하지만 이번엔 내 기록에 없던 선택이 생겼다.”"),
+MM("처음 본 기억: ‘하란이 문 앞에서 쓰러진다.’ → 실제로 일어난 일: ‘"+(res?"하란은 쓰러지지 않았다.":"하란은 쓰러졌다.")+"’"),
+SY("탑","“미래를 아는 것이 아니었다. 나는 네 과거를 읽고 ‘이번에도 따를 것이다’라고 짐작했을 뿐이다. 네가 그 짐작을 믿고 따를 때마다, 내 짐작은 맞는 것이 되었다.”"),
+{mini:{msg:"탑이 무너진다! 마지막 폭풍을 뚫고 기억(✦)을 모아라.",goal:14,sec:26,max:3,lv:4}},QZ("책임","AI의 틀린 예측으로 피해가 생겼다면, 책임은 누구에게 있을까?",["AI는 기계라서 아무도 책임이 없다","AI 혼자 책임진다","만든 사람, 운영한 사람, 사용해 결정한 사람이 각자 역할만큼 따져 봐야 한다"],2,"AI는 도구예요. 판단과 결정은 사람이 하므로 역할에 맞게 책임을 나눠 져야 해요."),
+CH("마지막 선택","탑이 묻는다. “마지막 장면은 비어 있다. 이 장면은 네가 쓴다. 불을 끌까?”",[OP("기억대로 탑의 불을 끈다.",true,10,0),OP("불을 끄지 않고, 탑과 대화를 시작한다.",false,-10,10)],"“알고도 선택했다는 사실이 의미를 만든다.”")]}
+function stg(n){S.hp=Math.min(3,S.hp+1);snap();const nm=["","순응","균열","확률","되먹임","선택"][n];S.stage=n;S.busy=true;S.flash=.8;S.title={s:n+"막 · "+nm,u:Date.now()+2400};note("— "+n+"막 ‘"+nm+"’ —");
+const L=SC(n),k=L.findIndex(x=>x.mem===undefined);S.rest=L.slice(k);S.target=["","","mujin","damsol","haran","gate"][n];hud();
+run(L.slice(0,k),()=>{S.busy=false;S.mem=false;hint();hud()})}
+function end(){const f=S.log.filter(l=>l.follow).length,r=Math.round(f/S.log.length*100),ti=r==100?"순응하는 자":r==0?"미래를 거스르는 자":"흔들리는 자",en=r==100?"평화롭지만 아무도 고르지 않은 세계가 되었다.":r==0?"혼란스럽지만 모두의 선택으로 쓰인 세계가 열렸다.":"일부는 지키고 일부는 거스른, 가장 인간적인 결말이 되었다.",gr=S.decode>=4?"기억 해독가":S.decode>=2?"견습 해독가":"다시 도전해 보세요",bad=S.study.filter(z=>!z.ok),wn=bad.length?"<b>오답 노트</b><ul>"+bad.map(z=>"<li><b>"+z.k+"</b> — "+z.why+"</li>").join("")+"</ul>":"<b>모든 기억을 해독했어요!</b><br>";
+show("선택 기록","<b>"+en+"</b><br><b>칭호: ‘"+ti+"’ · 해독 등급: ‘"+gr+"’ ("+S.decode+"/4)</b><br><b>기억을 따른 비율: "+r+"%</b><ol>"+S.log.map(l=>"<li>"+l.q+": "+l.t+" <i>("+(l.follow?"따름":"거스름")+")</i></li>").join("")+"</ol>"+wn+"<b>토론 질문</b><ol><li>AI의 예측이나 추천을 얼마나 따르나요? 이유는 무엇인가요?</li><li>예측이 틀렸다면 그 책임은 누구에게 있을까요?</li><li>결과를 알 수 있어도 내가 직접 고르는 것에 의미가 있을까요?</li></ol><b>용어 도감</b><ul>"+S.gloss.map(g=>"<li><b>"+g.frag+"</b> — "+g.def+"</li>").join("")+"</ul><small>수고했어요! 선택을 바꿔 다시 하면 다른 결말과 칭호를 볼 수 있어요.</small>",[["처음부터 다시",()=>location.reload()]])}
+function move(dx,dy){if(S.mini){S.mini.x+=dx*40;return}if(S.busy)return;S.dir=[dx,dy];if(Date.now()<(S.nx||0))return;const x=S.px+dx,y=S.py+dy;
+if(x<0||y<0||x>14||y>9||"#HTWgL".includes(MAP[y][x])||STORY.npcs.some(n=>n.x==x&&n.y==y))return;S.px=x;S.py=y;S.nx=Date.now()+120;tone(90,.04,"square",.015);const k=SPK.find(q=>q[0]==x&&q[1]==y&&!S.found[q[2]]);if(k){S.found[k[2]]=1;S.frag++;S.gloss.push({frag:k[2],def:k[3]});hud();jingle();S.flash=.7;note("✦ 숨은 기억 조각 발견: "+k[2])}}
+const near=(x,y)=>Math.abs(S.px-x)+Math.abs(S.py-y)==1;
+function interact(){if(S.busy)return;const d=S.dir||[0,-1],tx=S.px+d[0],ty=S.py+d[1],n=STORY.npcs.find(n=>n.x==tx&&n.y==ty);if(n)return talk(n);if(tx==7&&ty==2)return gate();
+show("","말을 걸 상대 쪽을 바라보고(방향키) 다시 ‘대화’를 눌러 보자.",[]);setTimeout(()=>{if(!S.busy)hint()},1200)}
+const D={L:[-1,0],R:[1,0],U:[0,-1],D:[0,1]};
+document.querySelectorAll("[data-d]").forEach(b=>b.addEventListener("pointerdown",e=>{e.preventDefault();move(...D[b.dataset.d])}));
+$("talk").onclick=interact;$("dex").onclick=dex;$("box").onclick=()=>{if(SK)SK()};$("snd").onclick=()=>{MUTE=!MUTE;$("snd").textContent=MUTE?"🔇":"🔊"};
+addEventListener("keyup",()=>{if(S.mini)S.mini.vx=0});
+cv.addEventListener("pointermove",e=>{if(S.mini){const b=cv.getBoundingClientRect();S.mini.x=(e.clientX-b.left)/b.width*480}});
+const pc=()=>Math.round(Math.min(90,30+S.trust*.7));
+function snap(){const{fate,trust,frag,log,gloss,found,decode,study,talked,gateDone}=S;S.sv=JSON.stringify({fate,trust,frag,log,gloss,found,decode,study,talked,gateDone})}
+function hurt(why){S.hp--;hud();tone(110,.4,"sawtooth",.06);note("♥ -1 · "+why);if(S.hp<=0){gameOver(why);return true}return false}
+function gameOver(why){S.busy=true;S.mini=null;S.mem=false;show("기억이 흐려졌다…","<b>실패: "+why+"</b><br>♥를 모두 잃어 더 나아갈 수 없다.<br><small>이 막의 처음부터 다시 도전할 수 있어요. 퀴즈의 정답을 꼭 기억해 두세요!</small>",[["이 막부터 다시 도전",retry]],"q")}
+function retry(){Object.assign(S,JSON.parse(S.sv));S.hp=3;S.px=7;S.py=8;P.rx=7;P.ry=8;S.mini=null;if(S.stage>1)stg(S.stage);else{S.busy=false;S.mem=false;hint();hud()}}
+function startMini(c,done){show("기억의 폭풍","<b>"+c.msg+"</b><br>← → 키(또는 화면 드래그·버튼)로 움직여요. ✦ "+c.goal+"개를 모으면 성공! 검은 안개에 "+c.max+"번 맞으면 실패(♥ -1)!",[["시작",()=>{show("","✦를 모아라! 안개를 피해라!",[]);S.mini={x:240,vx:0,it:[],got:0,hit:0,goal:c.goal,max:c.max,lv:c.lv,end:Date.now()+c.sec*1000,done}}]])}
+function drawMini(g,t){const m=S.mini,left=Math.max(0,(m.end-t)/1000);m.x=Math.max(16,Math.min(464,m.x+m.vx*6));
+if(Math.random()<.06+m.lv*.015)m.it.push({x:20+Math.random()*440,y:-10,good:Math.random()<.55,v:1.8+Math.random()*1.4+m.lv*.25});
+m.it.forEach(i=>i.y+=i.v);
+m.it=m.it.filter(i=>{if(Math.abs(i.x-m.x)<22&&i.y>268&&i.y<312){if(i.good){m.got++;tone(760,.08,"triangle",.05)}else{m.hit++;m.fl=1;tone(110,.25,"sawtooth",.06)}return false}return i.y<330});
+g.fillStyle="#0d0b1e";g.fillRect(0,0,480,320);
+for(let k=0;k<30;k++){g.fillStyle="rgba(255,255,255,"+(.2+.5*H(k,5))+")";g.fillRect(H(k,1)*480|0,(H(k,2)*320+t/40*(.3+H(k,3)))%320|0,2,2)}
+m.it.forEach(i=>{if(i.good){g.fillStyle="#9fd8ff";g.fillRect(i.x-2,i.y-8,4,16);g.fillRect(i.x-8,i.y-2,16,4);g.fillStyle="#fff";g.fillRect(i.x-2,i.y-2,4,4)}else{g.fillStyle="#3a1f4d";g.fillRect(i.x-10,i.y-8,20,16);g.fillStyle="#5a2f78";g.fillRect(i.x-8,i.y-10,16,4);g.fillStyle="#ff5a5a";g.fillRect(i.x-5,i.y-3,3,3);g.fillRect(i.x+2,i.y-3,3,3)}});
+g.fillStyle="rgba(0,0,0,.3)";g.fillRect(m.x-14,312,28,4);spr(g,m.x-16,282,PAL.me);acc(g,"me",m.x-16,282);
+if(m.fl>0){g.fillStyle="rgba(255,60,60,"+m.fl*.4+")";g.fillRect(0,0,480,320);m.fl-=.06}
+g.font="18px 'Do Hyeon',sans-serif";g.textAlign="left";g.fillStyle="#ffe08a";g.fillText("✦ "+m.got+"/"+m.goal,12,26);g.textAlign="center";g.fillStyle="#fff";g.fillText("⏱ "+left.toFixed(1),240,26);g.textAlign="right";g.fillStyle="#ff8a8a";g.fillText("안개 "+m.hit+"/"+m.max,468,26);
+if(m.got>=m.goal||m.hit>=m.max||left<=0){const ok=m.got>=m.goal,d=m.done;S.mini=null;d(ok)}}
+const LG=[];function logm(s){LG.push(s);$("log").innerHTML=LG.slice(-4).map(x=>"<div>"+x+"</div>").join("")}
+function note(s,ms){S.toast={s:s,u:Date.now()+(ms||2400)};logm(s)}
+let BT=0;const MEL=[294,370,440,370,494,440,370,330];
+function bgm(){if(BT)return;let i=0;BT=setInterval(()=>{tone(MEL[i%8],.9,"triangle",.02);if(i%4==0)tone(147,1.8,"sine",.035);i++},650)}
+["pointerdown","keydown"].forEach(ev=>addEventListener(ev,bgm,{once:true}));
+document.addEventListener("keydown",e=>{if(S.mini){const v={ArrowLeft:-1,a:-1,ArrowRight:1,d:1}[e.key];if(v){e.preventDefault();S.mini.vx=v}return}const k=e.key,m={ArrowLeft:"L",a:"L",ArrowRight:"R",d:"R",ArrowUp:"U",w:"U",ArrowDown:"D",s:"D"}[k];
+const bs=[...document.querySelectorAll("#btns button")];
+if(S.busy){if(SK){if(k==" "||k=="Enter"){e.preventDefault();SK()}return}if(/^[1-9]$/.test(k)&&bs[k-1])bs[k-1].click();else if((k==" "||k=="Enter")&&bs.length==1){e.preventDefault();bs[0].click()}return}
+if(m){e.preventDefault();move(...D[m])}else if(k==" "||k=="Enter"){e.preventDefault();interact()}});
+draw();hud();$("go").onclick=()=>{$("start").style.display="none";snap();run(STORY.mem,()=>{S.busy=false;S.mem=false;hint();hud()},"mem","…");logm("바람이 분다. 마을에 해 질 무렵이 다가온다.")};
+</script></body></html>
